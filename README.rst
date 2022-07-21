@@ -41,7 +41,7 @@ Contributors & Acknowledgements
 -------------------------------
 
 For a complete list of GPflow contributors, see `GPflow's GitHub page`_. 
-Extensions pertaining to orthogonal SVGP methods were written by Oskar Fernlund 
+Source code pertaining to orthogonal SVGP methods were written by Oskar Fernlund 
 at Imperial College London in support of his 2022 Master's thesis. Many thanks 
 to Mark van der Wilk and Anish Dhir for all their insightful feedback and 
 support.
