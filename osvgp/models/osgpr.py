@@ -28,7 +28,7 @@ from gpflow.models.util import InducingPointsLike
 #  CLASSES
 # =============================================================================
 
-class OSGPR(GPModel, InternalDataTrainingLossMixin): 
+class OSGPR(GPModel, InternalDataTrainingLossMixin):
     """ Orthogonal sparse variational Gaussian process regression. 
     
     This is an extension of SGPR (Titsias, 2009) [1] with two orthogonal sets 

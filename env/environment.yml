@@ -216,4 +216,3 @@ dependencies:
   - zlib=1.2.12=ha287fd2_2
   - zstd=1.5.2=hd705a24_2
 prefix: /opt/homebrew/Caskroom/miniforge/base/envs/osvgp
- 
