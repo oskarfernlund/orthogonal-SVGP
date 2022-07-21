@@ -18,9 +18,8 @@ approximations with fewer inducing points than standard SVGP methods.
 Dependencies
 ------------
 
-This project is built on a forked version of GPflow_ and relies on NumPy, 
-SciPy, Matplotlib, Jupyter, TensorFlow, TensorFlow Probability, as well as 
-tabulate, lark, deprecated and multipledispatch. Note that TensorFlow 
+This project relies heavily on GPflow_ and its dependencies, as well as NumPy, 
+Matplotlib, Jupyter, TensorFlow, TensorFlow Probability. Note that TensorFlow 
 Probability releases are tightly coupled to TensorFlow; please ensure that the 
 TensorFlow and TensorFlow Probability versions you have installed are 
 compatible. You may wish to manually install an older version of TensorFlow 
