@@ -1,3 +1,3 @@
-from .plots import plot1, plot2
+from .plots import plot_dataset_1D, plot_predictions_1D
 
-__all__ = ["plot1", "plot2"]
+__all__ = ["plot_dataset_1D", "plot_predictions_1D"]
