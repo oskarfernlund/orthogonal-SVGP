@@ -1,2 +1,2 @@
-from . import (datasets, metrics, models, plotting)
-__all__ = ["datasets", "metrics", "models", "plotting",]
+from . import (base,datasets, metrics, models, plotting, util)
+__all__ = ["base", "datasets", "metrics", "models", "plotting", "util"]
