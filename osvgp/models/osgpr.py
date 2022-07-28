@@ -14,14 +14,14 @@ from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
-
 from gpflow.base import InputData, MeanAndVariance, RegressionData
 from gpflow.config import default_float, default_jitter
 from gpflow.kernels import Kernel
 from gpflow.likelihoods import Gaussian
 from gpflow.models import GPModel, InternalDataTrainingLossMixin
 from gpflow.models.util import data_input_to_tensor, inducingpoint_wrapper
-from gpflow.models.util import InducingPointsLike
+
+from osvgp.base import OrthogonalInducingPointsLike
 
 
 # =============================================================================
@@ -46,7 +46,7 @@ class OSGPR(GPModel, InternalDataTrainingLossMixin):
     def __init__(self, 
                  data: RegressionData,
                  kernel: Kernel,
-                 inducing_inputs: Tuple[InducingPointsLike, InducingPointsLike],
+                 inducing_variable: OrthogonalInducingPointsLike,
                  noise_variance: float = 1.0, 
                  method: str = "SOLVE-GP") -> None:
         """ Constructor method for the Orthogonal SGPR model class.
@@ -71,7 +71,7 @@ class OSGPR(GPModel, InternalDataTrainingLossMixin):
         self.num_data = X.shape[0]
 
         # Set inducing point attributes
-        Z, O = inducing_inputs
+        Z, O = inducing_variable
         self.num_inducing = (Z.shape[0], O.shape[0])
         self.inducing_variable_1 = inducingpoint_wrapper(Z)
         self.inducing_variable_2 = inducingpoint_wrapper(O)
