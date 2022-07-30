@@ -14,8 +14,8 @@ from typing import Optional
 
 import numpy as np
 import matplotlib.pyplot as plt
-from gpflow.base import RegressionData
 
+from osvgp.base import RegressionData
 from osvgp.base import ProbabilisticPredictions, AnyInducingPointsLike
 from osvgp.util import diagonal, flatten, is_square
 
