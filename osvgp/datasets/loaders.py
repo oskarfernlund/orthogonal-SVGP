@@ -14,7 +14,8 @@ import csv
 from importlib import resources
 
 import numpy as np
-from gpflow.base import RegressionData
+
+from osvgp.base import RegressionData
 
 
 # =============================================================================

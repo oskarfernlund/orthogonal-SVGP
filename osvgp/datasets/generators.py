@@ -11,7 +11,8 @@ Dataset generating functions.
 # =============================================================================
 
 import numpy as np
-from gpflow.base import RegressionData
+
+from osvgp.base import RegressionData
 
 
 # =============================================================================
@@ -49,3 +50,4 @@ def multi_sine(x: np.ndarray) -> np.ndarray:
         (np.ndarray) : corresponding output values
     """
     return np.sin(x*3* np.pi) + 0.3*np.cos(x*9*np.pi) + 0.5*np.sin(x*7*np.pi)
+    
