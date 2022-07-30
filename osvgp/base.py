@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Custom type aliases.
+Some type aliases (from GPflow + some custom ones).
 """
 
 
@@ -12,9 +12,9 @@ Custom type aliases.
 
 from typing import Tuple, Union
 
-import numpy as np
 import tensorflow as tf
-from gpflow.base import InputData
+from gpflow.base import InputData, OutputData
+from gpflow.base import RegressionData, MeanAndVariance
 from gpflow.models.util import InducingPointsLike 
 
 
@@ -22,7 +22,7 @@ from gpflow.models.util import InducingPointsLike
 #  TYPE ALIASES
 # =============================================================================
 
-ArrayLike = Union[np.ndarray, tf.Tensor]
 OrthogonalInducingPointsLike = Tuple[InducingPointsLike, InducingPointsLike]
 AnyInducingPointsLike = Union[InducingPointsLike, OrthogonalInducingPointsLike]
 ProbabilisticPredictions = Tuple[InputData, tf.Tensor, tf.Tensor]
+SplitRegressionData = Tuple[RegressionData, RegressionData]
