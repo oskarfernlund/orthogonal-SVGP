@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Simple helper functions.
+Simple helper functions (from GPflow + some custom ones.)
 """
 
 
@@ -10,20 +10,23 @@ Simple helper functions.
 #  IMPORTS AND DEPENDENCIES
 # =============================================================================
 
-import numpy as np
+from typing import Union
 
-from osvgp.base import ArrayLike
+import numpy as np
+from gpflow.models.util import data_input_to_tensor, inducingpoint_wrapper
+
+from osvgp.base import InputData
 
 
 # =============================================================================
 #  FUNCTIONS
 # =============================================================================
 
-def diagonal(x: ArrayLike) -> np.ndarray: 
+def diagonal(x: InputData) -> np.ndarray: 
     """ Get the diagonal of an array-type.
     
      Args:
-        x (ArrayLike) : input array
+        x (InputData) : input array
 
     Raises:
         ValueError : if x is not square
@@ -38,11 +41,11 @@ def diagonal(x: ArrayLike) -> np.ndarray:
         raise ValueError("Input array must be square!")
 
 
-def flatten(x: ArrayLike) -> np.ndarray:
+def flatten(x: InputData) -> Union[np.ndarray, None]:
     """ Cast an array-type as a flat numpy array.
     
     Args:
-        x (ArrayLike) : input array
+        x (InputData) : input array
     
     Returns:
         (np.ndarray or None) : x cast as a numpy array and flattened
@@ -53,11 +56,11 @@ def flatten(x: ArrayLike) -> np.ndarray:
         return np.array(x).ravel()
 
 
-def is_square(x: ArrayLike) -> bool:
+def is_square(x: InputData) -> bool:
     """ Check if an array-type is square. 
     
     Args:
-        x (ArrayLike) : input array
+        x (InputData) : input array
 
     Raises:
         ValueError : if x is not 2-dimensional
