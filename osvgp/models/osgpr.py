@@ -10,18 +10,16 @@ Orthogonal sparse Gaussian process regression model.
 #  IMPORTS AND DEPENDENCIES
 # =============================================================================
 
-from typing import Tuple
-
 import numpy as np
 import tensorflow as tf
-from gpflow.base import InputData, MeanAndVariance, RegressionData
-from gpflow.config import default_float, default_jitter
-from gpflow.kernels import Kernel
-from gpflow.likelihoods import Gaussian
-from gpflow.models import GPModel, InternalDataTrainingLossMixin
-from gpflow.models.util import data_input_to_tensor, inducingpoint_wrapper
 
+from osvgp.base import InputData, RegressionData, MeanAndVariance
 from osvgp.base import OrthogonalInducingPointsLike
+from osvgp.config import DEFAULT_FLOAT, DEFAULT_JITTER
+from osvgp.kernels import Kernel
+from osvgp.likelihoods import Gaussian
+from osvgp.models import GPModel, InternalDataTrainingLossMixin
+from osvgp.util import data_input_to_tensor, inducingpoint_wrapper
 
 
 # =============================================================================
@@ -55,11 +53,11 @@ class OSGPR(GPModel, InternalDataTrainingLossMixin):
         by setting the method argument to "ODVGP".
 
         Args:
-            data (RegressionData) : Training data (X, y values)
-            kernel (Kernel) : Kernel function for computing covariance
-            inducing_inputs (tuple of InducingPointsLike) : Inducing point sets
-            noise_variance (float) : Data noise variance 
-            method (str) : Orthogonal parameterisation ("SOLVE-GP" or "ODVGP")
+            data (RegressionData) : training data (X, y values)
+            kernel (Kernel) : kernel function for computing covariance
+            inducing_inputs (OrthogonalInducingPointsLike) : inducing inputs
+            noise_variance (float) : data noise variance 
+            method (str) : orthogonal parameterisation ("SOLVE-GP" or "ODVGP")
         """
         # Inherit GP model superclass
         likelihood = Gaussian(noise_variance)
@@ -90,7 +88,7 @@ class OSGPR(GPModel, InternalDataTrainingLossMixin):
         """ Compute collapsed lower bound on the marginal likelihood.
         
         Returns:
-            (tf.Tensor) : Collapsed evidence lower bound
+            (tf.Tensor) : collapsed evidence lower bound
         """
         X, y = self.data
         Z, O = self.inducing_variable_1.Z, self.inducing_variable_2.Z
@@ -100,13 +98,13 @@ class OSGPR(GPModel, InternalDataTrainingLossMixin):
         sigma = tf.sqrt(sigma_sq)
 
         # Identity matrices
-        IM = tf.eye(Mu + Mv, dtype=default_float())
-        IMu = tf.eye(Mu, dtype=default_float())
-        IMv = tf.eye(Mv, dtype=default_float())
+        IM = tf.eye(Mu + Mv, dtype=DEFAULT_FLOAT)
+        IMu = tf.eye(Mu, dtype=DEFAULT_FLOAT)
+        IMv = tf.eye(Mv, dtype=DEFAULT_FLOAT)
 
         # Zero matrices
-        Zuv = tf.zeros((Mu, Mv), dtype=default_float())
-        Zvu = tf.zeros((Mv, Mu), dtype=default_float())
+        Zuv = tf.zeros((Mu, Mv), dtype=DEFAULT_FLOAT)
+        Zvu = tf.zeros((Mv, Mu), dtype=DEFAULT_FLOAT)
 
         # Covariances & Cholesky decompositions
         kff_diag = self.kernel(X, full_cov=False)
@@ -114,8 +112,8 @@ class OSGPR(GPModel, InternalDataTrainingLossMixin):
         kvf = self.kernel(O, X)
         kuv = self.kernel(Z, O)
         kvf = self.kernel(O, X)
-        kuu = self.kernel(Z) + default_jitter() * IMu
-        kvv = self.kernel(O) + default_jitter() * IMv
+        kuu = self.kernel(Z) + DEFAULT_JITTER * IMu
+        kvv = self.kernel(O) + DEFAULT_JITTER * IMv
         Lu = tf.linalg.cholesky(kuu)
         tmp1 = tf.linalg.triangular_solve(Lu, kuv, lower=True)
         tmp2 = tf.linalg.triangular_solve(Lu, kuf, lower=True)
@@ -158,9 +156,9 @@ class OSGPR(GPModel, InternalDataTrainingLossMixin):
         """ Predict the mean and variance of the latent function at some points. 
         
         Args:
-            Xnew (InputData) : New points at which to compute predictions
-            full_cov (bool) : Whether to return covariance or variance
-            full_output_cov (bool) : Required argument for GPmodel superclass
+            Xnew (InputData) : new points at which to compute predictions
+            full_cov (bool) : whether to return covariance or variance
+            full_output_cov (bool) : required argument for GPmodel superclass
 
         Returns:
             mean, var (MeanAndVariance) : Predictive mean and variance
@@ -173,24 +171,25 @@ class OSGPR(GPModel, InternalDataTrainingLossMixin):
         sigma = tf.sqrt(sigma_sq)
 
         # Identity matrices
-        IN = tf.eye(N, dtype=default_float())
-        IM = tf.eye(Mu + Mv, dtype=default_float())
-        IMu = tf.eye(Mu, dtype=default_float())
-        IMv = tf.eye(Mv, dtype=default_float())
+        IN = tf.eye(N, dtype=DEFAULT_FLOAT)
+        IM = tf.eye(Mu + Mv, dtype=DEFAULT_FLOAT)
+        IMu = tf.eye(Mu, dtype=DEFAULT_FLOAT)
+        IMv = tf.eye(Mv, dtype=DEFAULT_FLOAT)
 
         # Zero matrices
-        Zuv = tf.zeros((Mu, Mv), dtype=default_float())
-        Zvu = tf.zeros((Mv, Mu), dtype=default_float())
+        Zuv = tf.zeros((Mu, Mv), dtype=DEFAULT_FLOAT)
+        Zvu = tf.zeros((Mv, Mu), dtype=DEFAULT_FLOAT)
 
         # Covariances & Cholesky decompositions
+        kss = self.kernel(Xnew, full_cov=full_cov)
         kuf = self.kernel(Z, X)
         kus = self.kernel(Z, Xnew)
         kvf = self.kernel(O, X)
         kvs = self.kernel(O, Xnew)
         kuv = self.kernel(Z, O)
         kvf = self.kernel(O, X)
-        kuu = self.kernel(Z) + default_jitter() * IMu
-        kvv = self.kernel(O) + default_jitter() * IMv
+        kuu = self.kernel(Z) + DEFAULT_JITTER * IMu
+        kvv = self.kernel(O) + DEFAULT_JITTER * IMv
         Lu = tf.linalg.cholesky(kuu)
         tmp1 = tf.linalg.triangular_solve(Lu, kuv, lower=True)
         tmp2 = tf.linalg.triangular_solve(Lu, kuf, lower=True)
@@ -238,17 +237,14 @@ class OSGPR(GPModel, InternalDataTrainingLossMixin):
         tmp7 = tf.linalg.matmul(tf.linalg.matmul(tmp5, Du), y) / sigma
         mean = tmp6 + tmp7
 
-        # Predictive variance
+        # Predictive (co)variance
         if full_cov:
-            var = (self.kernel(Xnew)
-                + tf.linalg.matmul(Js, Js, transpose_a=True)
-                - tf.linalg.matmul(Hs, Hs, transpose_a=True))
-            var = tf.tile(var[None, ...], [1, 1, 1])
+            var = kss + tf.linalg.matmul(Js, Js, transpose_a=True) \
+                    - tf.linalg.matmul(Hs, Hs, transpose_a=True)
         else:
-            var = (self.kernel(Xnew, full_cov=False)
-                + tf.reduce_sum(tf.square(Js), 0)
-                - tf.reduce_sum(tf.square(Hs), 0))
-            var = tf.tile(var[:, None], [1, 1])
+            var = kss + tf.reduce_sum(tf.square(Js), 0) \
+                    - tf.reduce_sum(tf.square(Hs), 0)
+            var = tf.expand_dims(var, -1)
 
         return (mean, var)
 
@@ -273,22 +269,22 @@ class OSGPR(GPModel, InternalDataTrainingLossMixin):
         sigma = tf.sqrt(sigma_sq)
 
         # Identity matrices
-        IN = tf.eye(N, dtype=default_float())
-        IM = tf.eye(Mu + Mv, dtype=default_float())
-        IMu = tf.eye(Mu, dtype=default_float())
-        IMv = tf.eye(Mv, dtype=default_float())
+        IN = tf.eye(N, dtype=DEFAULT_FLOAT)
+        IM = tf.eye(Mu + Mv, dtype=DEFAULT_FLOAT)
+        IMu = tf.eye(Mu, dtype=DEFAULT_FLOAT)
+        IMv = tf.eye(Mv, dtype=DEFAULT_FLOAT)
 
         # Zero matrices
-        Zuv = tf.zeros((Mu, Mv), dtype=default_float())
-        Zvu = tf.zeros((Mv, Mu), dtype=default_float())
+        Zuv = tf.zeros((Mu, Mv), dtype=DEFAULT_FLOAT)
+        Zvu = tf.zeros((Mv, Mu), dtype=DEFAULT_FLOAT)
 
         # Covariances & Cholesky decompositions
         kuf = self.kernel(Z, X)
         kvf = self.kernel(O, X)
         kuv = self.kernel(Z, O)
         kvf = self.kernel(O, X)
-        kuu = self.kernel(Z) + default_jitter() * IMu
-        kvv = self.kernel(O) + default_jitter() * IMv
+        kuu = self.kernel(Z) + DEFAULT_JITTER * IMu
+        kvv = self.kernel(O) + DEFAULT_JITTER * IMv
         Lu = tf.linalg.cholesky(kuu)
         tmp1 = tf.linalg.triangular_solve(Lu, kuv, lower=True)
         tmp2 = tf.linalg.triangular_solve(Lu, kuf, lower=True)
@@ -325,11 +321,11 @@ class OSGPR(GPModel, InternalDataTrainingLossMixin):
         sigma = tf.sqrt(sigma_sq)
 
         # Identity matrices
-        IMu = tf.eye(Mu, dtype=default_float())
+        IMu = tf.eye(Mu, dtype=DEFAULT_FLOAT)
 
         # Covariances & Cholesky decompositions
         kuf = self.kernel(Z, X)
-        kuu = self.kernel(Z) + default_jitter() * IMu
+        kuu = self.kernel(Z) + DEFAULT_JITTER * IMu
         Lu = tf.linalg.cholesky(kuu)
 
         # Intermediate matrices
@@ -351,22 +347,22 @@ class OSGPR(GPModel, InternalDataTrainingLossMixin):
         sigma = tf.sqrt(sigma_sq)
 
         # Identity matrices
-        IN = tf.eye(N, dtype=default_float())
-        IM = tf.eye(Mu + Mv, dtype=default_float())
-        IMu = tf.eye(Mu, dtype=default_float())
-        IMv = tf.eye(Mv, dtype=default_float())
+        IN = tf.eye(N, dtype=DEFAULT_FLOAT)
+        IM = tf.eye(Mu + Mv, dtype=DEFAULT_FLOAT)
+        IMu = tf.eye(Mu, dtype=DEFAULT_FLOAT)
+        IMv = tf.eye(Mv, dtype=DEFAULT_FLOAT)
 
         # Zero matrices
-        Zuv = tf.zeros((Mu, Mv), dtype=default_float())
-        Zvu = tf.zeros((Mv, Mu), dtype=default_float())
+        Zuv = tf.zeros((Mu, Mv), dtype=DEFAULT_FLOAT)
+        Zvu = tf.zeros((Mv, Mu), dtype=DEFAULT_FLOAT)
 
         # Covariances & Cholesky decompositions
         kuf = self.kernel(Z, X)
         kvf = self.kernel(O, X)
         kuv = self.kernel(Z, O)
         kvf = self.kernel(O, X)
-        kuu = self.kernel(Z) + default_jitter() * IMu
-        kvv = self.kernel(O) + default_jitter() * IMv
+        kuu = self.kernel(Z) + DEFAULT_JITTER * IMu
+        kvv = self.kernel(O) + DEFAULT_JITTER * IMv
         Lu = tf.linalg.cholesky(kuu)
         tmp1 = tf.linalg.triangular_solve(Lu, kuv, lower=True)
         tmp2 = tf.linalg.triangular_solve(Lu, kuf, lower=True)
@@ -403,16 +399,16 @@ class OSGPR(GPModel, InternalDataTrainingLossMixin):
         sigma = tf.sqrt(sigma_sq)
 
         # Identity matrices
-        IMu = tf.eye(Mu, dtype=default_float())
-        IMv = tf.eye(Mv, dtype=default_float())
+        IMu = tf.eye(Mu, dtype=DEFAULT_FLOAT)
+        IMv = tf.eye(Mv, dtype=DEFAULT_FLOAT)
 
         # Covariances & Cholesky decompositions
         kuf = self.kernel(Z, X)
         kvf = self.kernel(O, X)
         kuv = self.kernel(Z, O)
         kvf = self.kernel(O, X)
-        kuu = self.kernel(Z) + default_jitter() * IMu
-        kvv = self.kernel(O) + default_jitter() * IMv
+        kuu = self.kernel(Z) + DEFAULT_JITTER * IMu
+        kvv = self.kernel(O) + DEFAULT_JITTER * IMv
         Lu = tf.linalg.cholesky(kuu)
         tmp1 = tf.linalg.triangular_solve(Lu, kuv, lower=True)
         tmp2 = tf.linalg.triangular_solve(Lu, kuf, lower=True)
