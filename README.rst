@@ -3,7 +3,7 @@
     
 Orthogonal sparse variational Gaussian processes (SVGP's) in TensorFlow.
 
-Orthogonal methods [1][2] extend standard SVGP approaches [3] by splitting the 
+Orthogonal methods [1,2] extend standard SVGP approaches [3] by splitting the 
 inducing points learned by the model into two orthogonal sets with structured 
 covariance. The resulting approximate posterior can be decomposed into several 
 independent (orthogonal) Gaussian processes and both training and prediction 
@@ -13,9 +13,9 @@ and explores whether orthogonal methods are indeed able to provide high quality
 posterior approximations with fewer inducing points than standard SVGP methods 
 and/or at reduced computational cost.
 
-[1] https://arxiv.org/pdf/1809.08820.pdf
-[2] https://arxiv.org/pdf/1910.10596.pdf
-[3] https://proceedings.mlr.press/v5/titsias09a/titsias09a.pdf
+| [1] https://arxiv.org/pdf/1809.08820.pdf
+| [2] https://arxiv.org/pdf/1910.10596.pdf
+| [3] https://proceedings.mlr.press/v5/titsias09a/titsias09a.pdf
 
 
 Dependencies
