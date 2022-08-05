@@ -11,9 +11,7 @@ Divergence-based performance metrics.
 # =============================================================================
 
 import numpy as np
-import tensorflow as tf
 
-from osvgp.base import InputData
 from osvgp.divergences import gaussian_kl
 from osvgp.models import GPModel, GPR
 
