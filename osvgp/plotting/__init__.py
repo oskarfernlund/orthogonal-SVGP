@@ -1,5 +1,9 @@
-from .plots import plot_dataset_1D
-from .plots import plot_predictions_1D
+from .plots import plot_dataset
+from .plots import plot_predictions
+from .plots import plot_metrics_2d
+from .plots import plot_metrics_3d
 
-__all__ = ["plot_dataset_1D", 
-           "plot_predictions_1D"]
+__all__ = ["plot_dataset", 
+           "plot_predictions",
+           "plot_metrics_2d",
+           "plot_metrics_3d"]
