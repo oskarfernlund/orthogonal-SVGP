@@ -151,18 +151,108 @@ class SGPR(GPModel, InternalDataTrainingLossMixin):
         c = tf.linalg.triangular_solve(LB, Ay, lower=True) / sigma
 
         # Predictive mean
-        tmp1 = tf.linalg.triangular_solve(L, kus, lower=True)
-        tmp2 = tf.linalg.triangular_solve(LB, tmp1, lower=True)
-        mean = tf.linalg.matmul(tmp2, c, transpose_a=True)
+        alpha = tf.linalg.triangular_solve(L, kus, lower=True)
+        beta = tf.linalg.triangular_solve(LB, alpha, lower=True)
+        mean = tf.linalg.matmul(beta, c, transpose_a=True)
 
         # Predictive (co)variance
         if full_cov:
-            var = kss + tf.linalg.matmul(tmp2, tmp2, transpose_a=True) \
-                    - tf.linalg.matmul(tmp1, tmp1, transpose_a=True)
-            # var = tf.tile(var[None, ...], [1, 1, 1])
+            var = kss - tf.linalg.matmul(alpha, alpha, transpose_a=True)\
+                + tf.linalg.matmul(beta, beta, transpose_a=True)          
         else:
-            var = kss + tf.reduce_sum(tf.square(tmp2), 0) \
-                    - tf.reduce_sum(tf.square(tmp1), 0)
+            var = kss - tf.reduce_sum(tf.square(alpha), 0) \
+                + tf.reduce_sum(tf.square(beta), 0)
+            var = tf.expand_dims(var, -1)
+
+        return (mean, var)
+
+    def predict_g(self, 
+                  Xnew: InputData, 
+                  full_cov: bool = False, 
+                  full_output_cov: bool = False) -> MeanAndVariance:
+        """ Compute sub-process g(x). 
+        
+        Args:
+            Xnew (InputData) : new points at which to compute predictions
+            full_cov (bool) : whether to return covariance or variance
+            full_output_cov (bool) : required argument for GPmodel superclass
+
+        Returns:
+            mean, var (MeanAndVariance) : mean and variance of g(x)
+        """
+        X, y = self.data
+        Z = self.inducing_variable.Z
+        M = self.num_inducing
+        sigma_sq = self.likelihood.variance
+        sigma = tf.sqrt(sigma_sq)
+
+        # Identity matrices
+        IM = tf.eye(M, dtype=DEFAULT_FLOAT)
+
+        # Covariances & Cholesky decompositions
+        kuf = self.kernel(Z, X)
+        kus = self.kernel(Z, Xnew)
+        kuu = self.kernel(Z) + DEFAULT_JITTER * IM
+        L = tf.linalg.cholesky(kuu)
+
+        # Intermediate matrices
+        A = tf.linalg.triangular_solve(L, kuf, lower=True) / sigma
+        AAT = tf.linalg.matmul(A, A, transpose_b=True)
+        B = IM + AAT
+        LB = tf.linalg.cholesky(B)
+        Ay = tf.linalg.matmul(A, y)
+        c = tf.linalg.triangular_solve(LB, Ay, lower=True) / sigma
+
+        # Mean
+        alpha = tf.linalg.triangular_solve(L, kus, lower=True)
+        beta = tf.linalg.triangular_solve(LB, alpha, lower=True)
+        mean = tf.linalg.matmul(beta, c, transpose_a=True)
+
+        # (Co)variance
+        if full_cov:
+            var = tf.linalg.matmul(beta, beta, transpose_a=True)
+        else:
+            var = tf.reduce_sum(tf.square(beta), 0)
+            var = tf.expand_dims(var, -1)
+
+        return (mean, var)
+
+    def predict_h(self, 
+                  Xnew: InputData, 
+                  full_cov: bool = False, 
+                  full_output_cov: bool = False) -> MeanAndVariance:
+        """ Compute sub-process g(x). 
+        
+        Args:
+            Xnew (InputData) : new points at which to compute predictions
+            full_cov (bool) : whether to return covariance or variance
+            full_output_cov (bool) : required argument for GPmodel superclass
+
+        Returns:
+            mean, var (MeanAndVariance) : mean and variance of h(x)
+        """
+        X, _ = self.data
+        Z = self.inducing_variable.Z
+        M = self.num_inducing
+
+        # Identity matrices
+        IM = tf.eye(M, dtype=DEFAULT_FLOAT)
+
+        # Covariances & Cholesky decompositions
+        kss = self.kernel(Xnew, full_cov=full_cov)
+        kus = self.kernel(Z, Xnew)
+        kuu = self.kernel(Z) + DEFAULT_JITTER * IM
+        L = tf.linalg.cholesky(kuu)
+
+        # Mean
+        mean = tf.zeros_like(Xnew)
+
+        # (Co)variance
+        alpha = tf.linalg.triangular_solve(L, kus, lower=True)
+        if full_cov:
+            var = kss - tf.linalg.matmul(alpha, alpha, transpose_a=True)
+        else:
+            var = kss - tf.reduce_sum(tf.square(alpha), 0)
             var = tf.expand_dims(var, -1)
 
         return (mean, var)

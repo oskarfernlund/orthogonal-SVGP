@@ -55,17 +55,17 @@ class GPR(GPModel, InternalDataTrainingLossMixin):
     def log_marginal_likelihood(self) -> tf.Tensor:
         """ Compute the log marginal likelihood. """
         X, y = self.data
+        N = self.num_data
         kff = self.kernel(X)
-        I = tf.eye(self.num_data, dtype=DEFAULT_FLOAT)
+        I = tf.eye(N, dtype=DEFAULT_FLOAT)
         L = tf.linalg.cholesky(kff + self.likelihood.variance * I)
 
         alpha = tf.linalg.triangular_solve(L, y, lower=True)
-        num_dims = tf.cast(self.num_data, L.dtype)
-        p = -0.5 * tf.reduce_sum(tf.square(alpha), 0)
-        p -= 0.5 * num_dims * np.log(2 * np.pi)
-        p -= tf.reduce_sum(tf.math.log(tf.linalg.diag_part(L)))
+        lml = -0.5 * tf.reduce_sum(tf.square(alpha), 0)
+        lml -= 0.5 * N * np.log(2 * np.pi)
+        lml -= tf.reduce_sum(tf.math.log(tf.linalg.diag_part(L)))
 
-        return tf.reduce_sum(p)
+        return tf.reduce_sum(lml)
 
     def predict_f(self,
                   Xnew: InputData,
@@ -82,22 +82,76 @@ class GPR(GPModel, InternalDataTrainingLossMixin):
             mean, var (MeanAndVariance) : Predictive mean and variance
         """
         X, y = self.data
+        N = self.num_data
         kff = self.kernel(X)
         kss = self.kernel(Xnew, full_cov=full_cov)
         kfs = self.kernel(X, Xnew)
-        I = tf.eye(self.num_data, dtype=DEFAULT_FLOAT)
+        I = tf.eye(N, dtype=DEFAULT_FLOAT)
         L = tf.linalg.cholesky(kff + self.likelihood.variance * I)
-        tmp1 = tf.linalg.triangular_solve(L, kfs, lower=True)
-        tmp2 = tf.linalg.triangular_solve(L, y, lower=True)
+        alpha = tf.linalg.triangular_solve(L, y, lower=True)
+        beta = tf.linalg.triangular_solve(L, kfs, lower=True)
 
         # Predictive mean
-        mean = tf.linalg.matmul(tmp1, tmp2, transpose_a=True)
+        mean = tf.linalg.matmul(beta, alpha, transpose_a=True)
 
         # Predictive (co)variance
         if full_cov:
-            var = kss - tf.linalg.matmul(tmp1, tmp1, transpose_a=True)
+            var = kss - tf.linalg.matmul(beta, beta, transpose_a=True)
         else:
-            var = kss - tf.reduce_sum(tf.square(tmp1), -2)
+            var = kss - tf.reduce_sum(tf.square(beta), -2)
             var = tf.expand_dims(var, -1)
 
         return (mean, var)
+
+
+
+
+    # def log_marginal_likelihood(self) -> tf.Tensor:
+    #     """ Compute the log marginal likelihood. """
+    #     X, y = self.data
+    #     kff = self.kernel(X)
+    #     I = tf.eye(self.num_data, dtype=DEFAULT_FLOAT)
+    #     L = tf.linalg.cholesky(kff + self.likelihood.variance * I)
+
+    #     tmp1 = tf.linalg.triangular_solve(L, y, lower=True)
+    #     num_dims = tf.cast(self.num_data, L.dtype)
+    #     p = -0.5 * tf.reduce_sum(tf.square(tmp1), 0)
+    #     p -= 0.5 * num_dims * np.log(2 * np.pi)
+    #     p -= tf.reduce_sum(tf.math.log(tf.linalg.diag_part(L)))
+
+    #     return tf.reduce_sum(p)
+
+    # def predict_f(self,
+    #               Xnew: InputData,
+    #               full_cov: bool = False,
+    #               full_output_cov: bool = False) -> MeanAndVariance:
+    #     """ Predict the mean and variance of the latent function at some points. 
+        
+    #     Args:
+    #         Xnew (InputData) : new points at which to compute predictions
+    #         full_cov (bool) : whether to return covariance or variance
+    #         full_output_cov (bool) : required argument for GPmodel superclass
+
+    #     Returns:
+    #         mean, var (MeanAndVariance) : Predictive mean and variance
+    #     """
+    #     X, y = self.data
+    #     kff = self.kernel(X)
+    #     kss = self.kernel(Xnew, full_cov=full_cov)
+    #     kfs = self.kernel(X, Xnew)
+    #     I = tf.eye(self.num_data, dtype=DEFAULT_FLOAT)
+    #     L = tf.linalg.cholesky(kff + self.likelihood.variance * I)
+    #     tmp1 = tf.linalg.triangular_solve(L, kfs, lower=True)
+    #     tmp2 = tf.linalg.triangular_solve(L, y, lower=True)
+
+    #     # Predictive mean
+    #     mean = tf.linalg.matmul(tmp1, tmp2, transpose_a=True)
+
+    #     # Predictive (co)variance
+    #     if full_cov:
+    #         var = kss - tf.linalg.matmul(tmp1, tmp1, transpose_a=True)
+    #     else:
+    #         var = kss - tf.reduce_sum(tf.square(tmp1), -2)
+    #         var = tf.expand_dims(var, -1)
+
+    #     return (mean, var)
