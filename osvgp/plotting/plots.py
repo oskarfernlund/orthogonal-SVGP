@@ -98,7 +98,7 @@ def plot_predictions(data: RegressionData,
     Z, O = flatten(Z), flatten(O)
 
     # Compute inducing point plotting lattitude
-    y_min, y_max = min([min(mu - 3*sd), min(y)]), max([max(mu - 3*sd), max(y)])
+    y_min, y_max = min([min(mu - 2*sd), min(y)]), max([max(mu - 2*sd), max(y)])
     Z_lat = np.full_like(Z, y_min - 0.1 * (y_max - y_min))
     O_lat = np.full_like(O, y_min - 0.1 * (y_max - y_min))
 
@@ -106,7 +106,9 @@ def plot_predictions(data: RegressionData,
     fig, ax = plt.subplots(1, 1, figsize=figsize, dpi=300)
     ax.scatter(X, y, facecolor="k", edgecolor="w", s=15, label="data")
     ax.plot(Xs, mu, color=c, lw=2, label="mean")
-    ax.fill_between(Xs, mu + 3*sd, mu - 3*sd, color=c, alpha=0.25, label="SD")
+    ax.fill_between(Xs, mu + 1*sd, mu - 1*sd, facecolor=c, 
+                    edgecolor="none", alpha=0.25, label="1 SD")
+    ax.fill_between(Xs, mu + 2*sd, mu - 2*sd, color=c, alpha=0.25, label="2 SD")
     ax.scatter(Z, Z_lat, s=30, marker="+", 
                facecolor="k", edgecolor="w", label="Z")
     if O is not None:
@@ -203,12 +205,12 @@ def plot_metrics_3d(xdata: np.ndarray,
         ax.zaxis.set_major_formatter(mticker.FuncFormatter(log_tick_formatter))
     
     # Integer axis tick formats
-    locator = mticker.MultipleLocator(2)
-    formatter = mticker.StrMethodFormatter("{x:.0f}")
-    plt.gca().xaxis.set_major_locator(locator)
-    plt.gca().xaxis.set_major_formatter(formatter)
-    plt.gca().yaxis.set_major_locator(locator)
-    plt.gca().yaxis.set_major_formatter(formatter)
+    # locator = mticker.MultipleLocator(2)
+    # formatter = mticker.StrMethodFormatter("{x:.0f}")
+    # plt.gca().xaxis.set_major_locator(locator)
+    # plt.gca().xaxis.set_major_formatter(formatter)
+    # plt.gca().yaxis.set_major_locator(locator)
+    # plt.gca().yaxis.set_major_formatter(formatter)
     
     ax.view_init(*angle)
 
