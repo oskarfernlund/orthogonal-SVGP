@@ -70,5 +70,9 @@ def gaussian_kl(q_mu: tf.Tensor,
     logdetp = tf.reduce_sum(tf.math.log(tf.linalg.diag_part(Lp)))
     logdet = logdetp - logdetq
 
-    return 0.5 * float(trace + quad - N + logdet)
+    # KL divergence
+    KL = 0.5 * float(trace + quad - N + logdet)
+    assert KL >= 0
+
+    return KL
     
