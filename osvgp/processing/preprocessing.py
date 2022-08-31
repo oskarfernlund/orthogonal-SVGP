@@ -49,7 +49,6 @@ def train_test_split(data: RegressionData,
 
     # Shuffle data
     if shuffle:
-        data = deepcopy(data)
         rng = np.random.default_rng(seed)
         shuffler = rng.permutation(X.shape[0])
         X, y = X[shuffler], y[shuffler]
