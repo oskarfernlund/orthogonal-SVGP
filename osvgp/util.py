@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Simple helper functions (from GPflow + some custom ones.)
+Simple helper functions (from GPflow + some custom ones).
 """
 
 
@@ -14,6 +14,7 @@ from typing import Union
 
 import numpy as np
 from gpflow.models.util import data_input_to_tensor, inducingpoint_wrapper
+from gpflow.utilities import set_trainable
 
 from osvgp.base import InputData
 
