@@ -7,7 +7,7 @@ Orthogonal methods [1,2] extend standard SVGP approaches [3] by splitting the
 inducing points learned by the model into two orthogonal sets with structured 
 covariance. The resulting approximate posterior can be decomposed into several 
 independent (orthogonal) Gaussian processes and both training and prediction 
-involves reduced complexity matrix inversions as compared with standard SVGP. 
+involves reduced complexity matrix operations as compared with standard SVGP. 
 This project implements an orthogonal SVGP framework using GPflow/TensorFlow 
 and explores whether orthogonal methods are indeed able to provide high quality 
 posterior approximations with fewer inducing points than standard SVGP methods 
