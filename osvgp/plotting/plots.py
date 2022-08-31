@@ -55,7 +55,7 @@ def plot_dataset(data: RegressionData,
     X, y = flatten(X), flatten(y)
 
     # Generate plot
-    fig, ax = plt.subplots(1, 1, figsize=figsize, dpi=300)
+    fig, ax = plt.subplots(1, 1, figsize=figsize, dpi=150)
     ax.scatter(X, y, facecolor="k", edgecolor="w", s=15, label="data")
 
     # Optional labels
@@ -103,7 +103,7 @@ def plot_predictions(data: RegressionData,
     O_lat = np.full_like(O, y_min - 0.1 * (y_max - y_min))
 
     # Generate plot
-    fig, ax = plt.subplots(1, 1, figsize=figsize, dpi=300)
+    fig, ax = plt.subplots(1, 1, figsize=figsize, dpi=150)
     ax.scatter(X, y, facecolor="k", edgecolor="w", s=15, label="data")
     ax.plot(Xs, mu, color=c, lw=2, label="mean")
     ax.fill_between(Xs, mu + 1*sd, mu - 1*sd, facecolor=c, 
@@ -149,7 +149,7 @@ def plot_metrics_2d(xdata: Union[range, list, np.ndarray],
         colours = ["C" + str(i) for i in range(len(metrics.keys()))]
 
     # Generate plot
-    fig, ax = plt.subplots(1, 1, figsize=figsize, dpi=300)
+    fig, ax = plt.subplots(1, 1, figsize=figsize, dpi=150)
     for i, (model, vals) in enumerate(metrics.items()):
         ax.plot(xdata, vals, c=colours[i], lw=2, label=model)
     ax.set_yscale(yscale)
@@ -194,7 +194,7 @@ def plot_metrics_3d(xdata: np.ndarray,
         figsize (tuple of int) : figure size
     """
     # Generate plot
-    fig = plt.figure(figsize=figsize, dpi=300)
+    fig = plt.figure(figsize=figsize, dpi=150)
     ax = fig.add_subplot(111, projection='3d')
 
     # Plot metrics in linear or log scale
