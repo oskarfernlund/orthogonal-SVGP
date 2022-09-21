@@ -74,8 +74,8 @@ def plot_predictions(data: RegressionData,
                      figsize: tuple = (8, 5)) -> None:
     """ Generate a plot of SGPR or OSGPR predictions.
 
-    Plots the predicted mean +/- 3 standard deviations, the training data and 
-    the learned inducing input locations.
+    Plots the predicted mean +/- 1 and 2 standard deviations, the training data
+    and the learned inducing input locations.
     
     Args:
         data (RegressionData) : training data to plot with predictions
@@ -120,6 +120,77 @@ def plot_predictions(data: RegressionData,
         ax.set_title(title)
     if legend:
         ax.legend()
+
+
+def overlay_predictions(data: RegressionData, 
+                        preds1: ProbabilisticPredictions,
+                        preds2: ProbabilisticPredictions,
+                        iv1: AnyInducingPointsLike,
+                        iv2: AnyInducingPointsLike,
+                        c1: str = "grey",
+                        c2: str = "C2",  
+                        title: Optional[str] = None,
+                        legend: bool = False,
+                        figsize: tuple = (8, 5)) -> None:
+    """ Generate an overlay of SGPR or OSGPR predictions.
+
+    Plots the predicted mean +/- 2 standard deviations, the training data and 
+    the learned inducing input locations.
+    
+    Args:
+        data (RegressionData) : training data to plot with predictions
+        preds1 (ProbabilisticPredictions) : 1st set of predictions (x*, mu, cov)
+        preds1 (ProbabilisticPredictions) : 2nd set of predictions (x*, mu, cov)
+        iv1 (AnyInducingPointsLike) : 1st set of inducing variables (inputs)
+        iv2 (AnyInducingPointsLike) : 2nd set of inducing variables (inputs)
+        c1 (str) : prediction colour 1
+        c2 (str) : prediction colour 2
+        title (str or None) : figure title
+        legend (bool) : whether or not to include a legend
+        figsize (tuple of int) : figure size
+    """
+    # Unpack inputs
+    X, y = data
+    Xs1, mu1, cov1 = preds1
+    Xs2, mu2, cov2 = preds2
+    sd1 = np.sqrt(diagonal(cov1)) if is_square(cov1) else np.sqrt(cov1)
+    sd2 = np.sqrt(diagonal(cov2)) if is_square(cov2) else np.sqrt(cov2)
+    Z1, O1 = iv1 if type(iv1) == tuple else (iv1, None)
+    Z2, O2 = iv2 if type(iv2) == tuple else (iv2, None)
+
+    # Flatten arrays/tensors
+    X, y = flatten(X), flatten(y)
+    Xs1, mu1, sd1 = flatten(Xs1), flatten(mu1), flatten(sd1)
+    Xs2, mu2, sd2 = flatten(Xs2), flatten(mu2), flatten(sd2)
+    Z1, O1 = flatten(Z1), flatten(O1)
+    Z2, O2 = flatten(Z2), flatten(O2)
+
+    # Compute inducing point plotting lattitude
+    y_min = min([min(mu1 - 2*sd1), min(mu2 - 2*sd2), min(y)]) 
+    y_max = max([max(mu1 + 2*sd1), max(mu2 + 2*sd2), max(y)])
+    Z1_lat = np.full_like(Z1, y_max + 0.1 * (y_max - y_min))
+    O1_lat = np.full_like(O1, y_max + 0.1 * (y_max - y_min))
+    Z2_lat = np.full_like(Z2, y_min - 0.1 * (y_max - y_min))
+    O2_lat = np.full_like(O2, y_min - 0.1 * (y_max - y_min))
+
+    # Generate plot
+    fig, ax = plt.subplots(1, 1, figsize=figsize, dpi=150)
+    ax.scatter(X, y, facecolor="k", edgecolor="w", s=15, label="data")
+    ax.plot(Xs1, mu1, color=c1, lw=2)
+    ax.fill_between(Xs1, mu1 + 2*sd1, mu1 - 2*sd1, color=c1, alpha=0.25)
+    ax.plot(Xs2, mu2, color=c2, lw=2, ls="--")
+    ax.plot(Xs2, mu2 + 2*sd2, color=c2, lw=1)
+    ax.plot(Xs2, mu2 - 2*sd2, color=c2, lw=1)
+    ax.scatter(Z1, Z1_lat, s=30, marker="+", facecolor="k", edgecolor="w")
+    if O1 is not None:
+        ax.scatter(O1, O1_lat, s=30, marker="^", facecolor="k", edgecolor="w")
+    ax.scatter(Z2, Z2_lat, s=30, marker="+", facecolor="k", edgecolor="w")
+    if O2 is not None:
+        ax.scatter(O2, O2_lat, s=30, marker="^", facecolor="k", edgecolor="w")
+    
+    # Optional labels
+    if title:
+        ax.set_title(title)
     
 
 def plot_metrics_2d(xdata: Union[range, list, np.ndarray],
